@@ -109,11 +109,101 @@ python scripts/full_breakdown.py      # Full campaign → ad breakdown
 python scripts/daily_report.py        # Yesterday vs day-before comparison
 ```
 
-### 4. Deploy as Agent
-Deploy via [QwenPaw](https://qwenpaw.ai) (or your agent framework) with:
-- `agent/` directory for identity & memory
-- Cron configured for 08:00 GMT+7
-- Telegram integration for delivery
+### 4. Deploy as Full Agent (QwenPaw)
+
+To unlock the full autonomous agent — scheduled reports, conversational queries, persistent memory:
+
+**Step 1: Create a QwenPaw Agent**
+1. Go to [QwenPaw](https://github.com/agentscope-ai/QwenPaw) and create a new agent
+2. Name it `Nazar` (or anything you like)
+
+**Step 2: Upload Identity Files**
+In your agent's workspace, upload the entire `agent/` folder:
+- `SOUL.md` → defines personality, rules, and tone
+- `AGENTS.md` → safety conventions and boundaries
+- `PROFILE.md` → identity and user preferences
+
+Edit `PROFILE.md` with your details (name, timezone, KPIs).
+
+**Step 3: Upload Scripts**
+Upload all files from `scripts/` into your agent's workspace.
+
+**Step 4: Configure Environment**
+Set these environment variables in QwenPaw:
+```
+META_ACCESS_TOKEN=your_token_here
+META_ACCOUNT_ID=act_your_account_id
+```
+
+**Step 5: Set the Cron Schedule**
+Configure a cron job for `08:00 Asia/Bangkok` (or your timezone) with this prompt:
+
+```
+Pull Meta Ads report for yesterday vs the day before. Format exactly like this:
+
+1. Executive Summary — 2-3 sentence performance highlight, mention ROAS, CPA, and significant changes. Use emoji.
+
+2. Comparison Table — include: Spend, Impressions, Reach, Clicks, Link Clicks, Landing Page Views, CPC, CPM, CTR, Cost per LPV, LP View Rate, Purchase*, Purchase Value, Click to Purchase rate, ROAS (est.), CPA (est.). Add delta column with green/yellow/red indicators.
+
+3. Insights — 3-4 analysis points, specific numbers. Flag anomalies.
+
+4. Creative Breakdown — per ad: Spend, CPC, CTR, LPV, Cost per LPV, Purchase*, CPA, Click to Purchase rate. Flag top performers.
+
+5. End-Date Radar — scan all ad sets for expiring/expired end_time. Flag assets still ACTIVE past end_date.
+
+6. Recommended Actions — prioritized P0/P1/P2 tasks.
+
+7. Caveat — ROAS and CPA are Pixel estimates, confirm actual closings in CRM.
+
+Also scan for new (🆕) and ended (⏹️) campaigns. Mention @team in the report.
+```
+
+**Step 6: Enable Telegram Delivery**
+Connect your Telegram session in QwenPaw to deliver reports to a group or channel.
+
+**That's it.** Nazar will now run autonomously — daily reports, end-date radar, creative rankings — without anyone touching Ads Manager.
+
+---
+
+---
+
+## ⚙️ What Runs Standalone vs What Needs an Agent
+
+Nazar is two things: **Python scripts** (the tools) and an **LLM agent** (the analyst).
+
+### ✅ Standalone (Python Only — No Agent Required)
+
+These work right out of the box with just `pip install`:
+
+- Pull raw account/campaign/adset/ad data from Meta API
+- Rank creatives by spend, ROAS, CPA, CTR
+- Generate matplotlib charts from data
+- Print day-over-day comparison tables
+
+```bash
+python scripts/daily_report.py   # Works immediately
+python scripts/analyze_creatives.py
+python scripts/full_breakdown.py
+```
+
+**Use case:** developer wants programmatic access to Meta Ads data without opening Ads Manager.
+
+### ⚡ Full Agent (Requires QwenPaw or Equivalent)
+
+These capabilities need an LLM agent framework for scheduling, reasoning, and memory:
+
+| Feature | Why an agent? |
+|---|---|
+| Scheduled delivery (08:00 daily) | Cron + Telegram integration |
+| Conversational queries ("How is Campaign X?") | LLM interprets questions, pulls relevant data |
+| Executive summaries & insights | LLM generates natural language from raw metrics |
+| End-date radar with recommendations | Persistent memory tracks campaign lifecycles |
+| Anomaly flags & opinions | LLM detects patterns, forms judgments |
+| Multi-language (English / Bahasa Indonesia) | LLM adapts language per context |
+
+**Use case:** autonomous team member that replaces the daily manual ad check.
+
+Nazar was built on [QwenPaw](https://github.com/agentscope-ai/QwenPaw), but the scripts are framework-agnostic — deploy them in any agent platform.
 
 ---
 
